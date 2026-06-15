@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
-import { ArrowLeft, History, RefreshCcw, ExternalLink, LayoutPanelLeft, Calculator } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, History, RefreshCcw } from "lucide-react";
 import * as XLSX from "xlsx";
-
-type Row = Record<string, string>;
+import { supabase } from "../lib/supabase";
 
 type HistoryEntry = {
   id: string;
@@ -22,25 +21,115 @@ type HistoryEntry = {
   kebutuhan: number;
 };
 
-const HISTORY_STORAGE_KEY = "sibaca-kalkulator-history";
+type BalanceRecordRow = {
+  id?: string | number;
+  created_at?: string | null;
+  record_date?: string | null;
+  pasien_nama?: string | null;
+  pasien_no_rm?: string | null;
+  pasien_usia?: number | string | null;
+  pasien_bb?: number | string | null;
+  pasien_ruang?: string | null;
+  total_input?: number | string | null;
+  total_output?: number | string | null;
+  total_balance?: number | string | null;
+  interpretasi?: string | null;
+  kebutuhan_harian?: number | string | null;
+};
 
 export default function HistoryPage({ onBack }: { onBack: () => void }) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(HISTORY_STORAGE_KEY);
-    if (stored) {
-      try {
-        setHistory(JSON.parse(stored));
-      } catch (e) {
-        setHistory([]);
+    const loadHistory = async () => {
+      if (!supabase) {
+        setError("Supabase belum dikonfigurasi.");
+        setLoading(false);
+        return;
       }
-    }
+
+      const { data, error } = await supabase
+        .from("balance_records")
+        .select("*");
+
+      if (error) {
+        console.error("Error loading history from Supabase:", error);
+        setError(error.message || "Gagal memuat history dari database.");
+        setHistory([]);
+        setLoading(false);
+        return;
+      }
+
+      const rows = (data ?? []) as BalanceRecordRow[];
+
+      const mappedHistory = rows
+        .map((row) => ({
+          id: String(row.id ?? `${row.pasien_nama ?? "pasien"}-${row.record_date ?? "unknown"}`),
+          savedAt: row.created_at ?? row.record_date ?? new Date().toISOString(),
+          pasien: {
+            nama: row.pasien_nama ?? "",
+            noRM: row.pasien_no_rm ?? "",
+            usia: String(row.pasien_usia ?? ""),
+            bb: String(row.pasien_bb ?? ""),
+            ruang: row.pasien_ruang ?? "",
+            tanggal: row.record_date ?? "",
+          },
+          totalInput: Number(row.total_input ?? 0),
+          totalOutput: Number(row.total_output ?? 0),
+          balance: Number(row.total_balance ?? 0),
+          interpretasi: row.interpretasi ?? "-",
+          kebutuhan: Number(row.kebutuhan_harian ?? 0),
+        }))
+        .sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
+
+      setHistory(mappedHistory);
+      setError("");
+      setLoading(false);
+    };
+
+    void loadHistory();
   }, []);
 
-  const clearHistory = () => {
-    window.localStorage.removeItem(HISTORY_STORAGE_KEY);
+  const clearHistory = async () => {
+    if (!supabase) {
+      setError("Supabase belum dikonfigurasi.");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("balance_records")
+      .select("id");
+
+    if (error) {
+      console.error("Error preparing history delete:", error);
+      setError(error.message || "Gagal menghapus history.");
+      return;
+    }
+
+    const ids = (data ?? [])
+      .map((row) => row.id)
+      .filter((id): id is string | number => id !== null && id !== undefined);
+
+    if (ids.length === 0) {
+      setHistory([]);
+      return;
+    }
+
+    const deleteResult = await supabase
+      .from("balance_records")
+      .delete()
+      .in("id", ids);
+
+    if (deleteResult.error) {
+      console.error("Error deleting history:", deleteResult.error);
+      setError(deleteResult.error.message || "Gagal menghapus history.");
+      return;
+    }
+
     setHistory([]);
+    setError("");
   };
 
   const exportHistoryExcel = () => {
@@ -105,7 +194,17 @@ export default function HistoryPage({ onBack }: { onBack: () => void }) {
           </div>
         </header>
 
-        {history.length === 0 ? (
+        {loading ? (
+          <div className="rounded-3xl border border-dashed border-emerald-100 bg-white p-10 text-center shadow-sm">
+            <p className="text-lg font-semibold text-slate-800">Memuat history...</p>
+            <p className="mt-2 text-sm text-slate-500">Mengambil data dari Supabase.</p>
+          </div>
+        ) : error ? (
+          <div className="rounded-3xl border border-rose-100 bg-rose-50 p-10 text-center shadow-sm">
+            <p className="text-lg font-semibold text-rose-800">History gagal dimuat</p>
+            <p className="mt-2 text-sm text-rose-600">{error}</p>
+          </div>
+        ) : history.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-emerald-100 bg-white p-10 text-center shadow-sm">
             <p className="text-lg font-semibold text-slate-800">Belum ada history</p>
             <p className="mt-2 text-sm text-slate-500">
