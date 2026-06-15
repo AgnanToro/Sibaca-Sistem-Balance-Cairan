@@ -31,6 +31,10 @@ export default function Kalkulator({ onBack, onNavigateHistory }: { onBack: () =
 
   const bb = num(pasien.bb);
   const suhu = num(pasien.suhu);
+  const getIwlBase = (value: string) => {
+    const parsed = num(value);
+    return parsed > 0 ? parsed : 15;
+  };
 
   const kebutuhan = num(pasien.bb) <= 0 ? 0
     : num(pasien.bb) <= 10 ? num(pasien.bb) * 100
@@ -190,13 +194,17 @@ export default function Kalkulator({ onBack, onNavigateHistory }: { onBack: () =
                     label="IWL Umum" 
                     value={output["IWL Umum"]} 
                     onChange={v => setOutput({ ...output, "IWL Umum": v })} 
-                    onCalc={() => setOutput(prev => ({ ...prev, "IWL Umum": (bb * 15).toFixed(0) }))}
+                    onCalc={() => setOutput(prev => ({ ...prev, "IWL Umum": (bb * getIwlBase(prev["IWL Umum"])).toFixed(0) }))}
                   />
                   <FieldWithCalc 
                     label="IWL Demam" 
                     value={output["IWL Demam"]} 
                     onChange={v => setOutput({ ...output, "IWL Demam": v })} 
-                    onCalc={() => setOutput(prev => ({ ...prev, "IWL Demam": (suhu > 37 ? (suhu - 37) * 0.1 * (bb * 15) : 0).toFixed(0) }))}
+                    onCalc={() => setOutput(prev => {
+                      const iwlUmum = num(prev["IWL Umum"]);
+                      const iwlDemam = suhu > 37 ? iwlUmum * 0.1 * (suhu - 37) : 0;
+                      return { ...prev, "IWL Demam": iwlDemam.toFixed(0) };
+                    })}
                   />
                 </div>
                 <Total label="Total output" value={totalOutput} tone="slate" />
