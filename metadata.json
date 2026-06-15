@@ -1,0 +1,6 @@
+{
+  "name": "SIBACA - Sistem Balance Cairan Terintegrasi",
+  "description": "Website untuk input dan output cairan (balance cairan) terintegrasi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
