@@ -11,14 +11,14 @@ import {
 } from "lucide-react";
 
 const INPUT_FIELDS = ["Infus", "Makanan", "Minuman", "Obat", "AM"] as const;
-const OUTPUT_FIELDS = ["Urine", "BAB", "Drain", "Muntah/NGT", "IWL"] as const;
+const OUTPUT_FIELDS = ["Urine", "BAB", "Drain", "Muntah/NGT", "IWL Umum", "IWL Demam"] as const;
 
 type Row = Record<string, string>;
 
 function num(v: string) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
 
 export default function Kalkulator({ onBack, onNavigateHistory }: { onBack: () => void, onNavigateHistory: () => void }) {
-  const [pasien, setPasien] = useState({ nama: "", noRM: "", usia: "", bb: "", ruang: "", tanggal: new Date().toISOString().slice(0, 10) });
+  const [pasien, setPasien] = useState({ nama: "", noRM: "", usia: "", bb: "", suhu: "", ruang: "", tanggal: new Date().toISOString().slice(0, 10) });
   const [input, setInput] = useState<Row>(Object.fromEntries(INPUT_FIELDS.map(k => [k, ""])));
   const [output, setOutput] = useState<Row>(Object.fromEntries(OUTPUT_FIELDS.map(k => [k, ""])));
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -29,12 +29,13 @@ export default function Kalkulator({ onBack, onNavigateHistory }: { onBack: () =
   const interpretasi = balance > 0 ? "Positif (+)" : balance < 0 ? "Negatif (−)" : "Seimbang";
   const tone = balance > 0 ? "emerald" : balance < 0 ? "rose" : "slate";
 
-  // Holliday-Segar
   const bb = num(pasien.bb);
-  const kebutuhan = bb <= 0 ? 0
-    : bb <= 10 ? bb * 100
-    : bb <= 20 ? 1000 + (bb - 10) * 50
-    : 1500 + (bb - 20) * 20;
+  const suhu = num(pasien.suhu);
+
+  const kebutuhan = num(pasien.bb) <= 0 ? 0
+    : num(pasien.bb) <= 10 ? num(pasien.bb) * 100
+    : num(pasien.bb) <= 20 ? 1000 + (num(pasien.bb) - 10) * 50
+    : 1500 + (num(pasien.bb) - 20) * 20;
 
   const reset = () => {
     setInput(Object.fromEntries(INPUT_FIELDS.map(k => [k, ""])));
@@ -52,6 +53,7 @@ export default function Kalkulator({ onBack, onNavigateHistory }: { onBack: () =
       pasien_no_rm: pasien.noRM,
       pasien_usia: parseFloat(pasien.usia) || 0,
       pasien_bb: parseFloat(pasien.bb) || 0,
+      pasien_suhu: num(pasien.suhu),
       pasien_ruang: pasien.ruang,
       record_date: pasien.tanggal,
       
@@ -65,7 +67,8 @@ export default function Kalkulator({ onBack, onNavigateHistory }: { onBack: () =
       output_bab: num(output["BAB"]),
       output_drain: num(output["Drain"]),
       output_muntah_ngt: num(output["Muntah/NGT"]),
-      output_iwl: num(output["IWL"]),
+      output_iwl_umum: num(output["IWL Umum"]),
+      output_iwl_demam: num(output["IWL Demam"]),
       
       total_input: totalInput,
       total_output: totalOutput,
@@ -96,6 +99,7 @@ export default function Kalkulator({ onBack, onNavigateHistory }: { onBack: () =
       ["No. RM", pasien.noRM],
       ["Usia", pasien.usia],
       ["Berat Badan (kg)", pasien.bb],
+      ["Suhu Tubuh (°C)", pasien.suhu],
       ["Ruang", pasien.ruang],
       ["Tanggal", pasien.tanggal],
       [],
@@ -160,6 +164,7 @@ export default function Kalkulator({ onBack, onNavigateHistory }: { onBack: () =
                 <Field label="No. rekam medis" value={pasien.noRM} onChange={v => setPasien({ ...pasien, noRM: v })} placeholder="RM-000123" />
                 <Field label="Usia (tahun)" value={pasien.usia} onChange={v => setPasien({ ...pasien, usia: v })} placeholder="45" type="number" />
                 <Field label="Berat badan (kg)" value={pasien.bb} onChange={v => setPasien({ ...pasien, bb: v })} placeholder="60" type="number" />
+                <Field label="Suhu tubuh (°C)" value={pasien.suhu} onChange={v => setPasien({ ...pasien, suhu: v })} placeholder="37" type="number" />
                 <Field label="Ruang / bangsal" value={pasien.ruang} onChange={v => setPasien({ ...pasien, ruang: v })} placeholder="Melati 3" />
                 <Field label="Tanggal" value={pasien.tanggal} onChange={v => setPasien({ ...pasien, tanggal: v })} type="date" />
                 </div>
@@ -176,9 +181,23 @@ export default function Kalkulator({ onBack, onNavigateHistory }: { onBack: () =
 
             <Section title="Output cairan (mL)" icon={MinusCircle} accent="slate">
                 <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                {OUTPUT_FIELDS.map(k => (
+                {OUTPUT_FIELDS.filter(k => !k.startsWith("IWL")).map(k => (
                     <Field key={k} label={k} value={output[k]} onChange={v => setOutput({ ...output, [k]: v })} placeholder="0" type="number" />
                 ))}
+                </div>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <FieldWithCalc 
+                    label="IWL Umum" 
+                    value={output["IWL Umum"]} 
+                    onChange={v => setOutput({ ...output, "IWL Umum": v })} 
+                    onCalc={() => setOutput(prev => ({ ...prev, "IWL Umum": (bb * 15).toFixed(0) }))}
+                  />
+                  <FieldWithCalc 
+                    label="IWL Demam" 
+                    value={output["IWL Demam"]} 
+                    onChange={v => setOutput({ ...output, "IWL Demam": v })} 
+                    onCalc={() => setOutput(prev => ({ ...prev, "IWL Demam": (suhu > 37 ? (suhu - 37) * 0.1 * (bb * 15) : 0).toFixed(0) }))}
+                  />
                 </div>
                 <Total label="Total output" value={totalOutput} tone="slate" />
             </Section>
@@ -308,6 +327,30 @@ function Field({ label, value, onChange, placeholder, type = "text" }: { label: 
         placeholder={placeholder}
         className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
       />
+    </label>
+  );
+}
+
+function FieldWithCalc({ label, value, onChange, onCalc }: { label: string; value: string; onChange: (v: string) => void; onCalc: () => void }) {
+  return (
+    <label className="block">
+       <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-slate-600">{label}</span>
+          <button 
+            type="button"
+            onClick={onCalc} 
+            className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-medium hover:bg-emerald-200"
+          >
+            Hitung
+          </button>
+       </div>
+       <input
+         type="number"
+         value={value}
+         onChange={e => onChange(e.target.value)}
+         placeholder="0"
+         className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+       />
     </label>
   );
 }

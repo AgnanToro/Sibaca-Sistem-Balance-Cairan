@@ -11,6 +11,7 @@ type HistoryEntry = {
     noRM: string;
     usia: string;
     bb: string;
+    suhu: string;
     ruang: string;
     tanggal: string;
   };
@@ -29,6 +30,7 @@ type BalanceRecordRow = {
   pasien_no_rm?: string | null;
   pasien_usia?: number | string | null;
   pasien_bb?: number | string | null;
+  pasien_suhu?: number | string | null;
   pasien_ruang?: string | null;
   total_input?: number | string | null;
   total_output?: number | string | null;
@@ -73,6 +75,7 @@ export default function HistoryPage({ onBack }: { onBack: () => void }) {
             noRM: row.pasien_no_rm ?? "",
             usia: String(row.pasien_usia ?? ""),
             bb: String(row.pasien_bb ?? ""),
+            suhu: String(row.pasien_suhu ?? ""),
             ruang: row.pasien_ruang ?? "",
             tanggal: row.record_date ?? "",
           },
@@ -140,6 +143,7 @@ export default function HistoryPage({ onBack }: { onBack: () => void }) {
       "Nama pasien": entry.pasien.nama || "-",
       "No. RM": entry.pasien.noRM || "-",
       Usia: entry.pasien.usia || "-",
+      "Suhu Tubuh (°C)": entry.pasien.suhu || "-",
       "Berat badan (kg)": entry.pasien.bb || "-",
       Tanggal: entry.pasien.tanggal || "-",
       Ruang: entry.pasien.ruang || "-",
@@ -240,6 +244,9 @@ export default function HistoryPage({ onBack }: { onBack: () => void }) {
                 <div className="mt-4 rounded-2xl bg-emerald-50/70 p-4 text-xs text-emerald-900">
                   <p className="font-semibold">Data pasien</p>
                   <p className="mt-1">RM: {entry.pasien.noRM || "-"}</p>
+                  <p>Usia: {entry.pasien.usia || "-"}</p>
+                  <p>Suhu tubuh: {entry.pasien.suhu || "-"}</p>
+                  <p>Berat badan: {entry.pasien.bb || "-"}</p>
                   <p>Tanggal: {entry.pasien.tanggal || "-"}</p>
                   <p>Ruang: {entry.pasien.ruang || "-"}</p>
                 </div>

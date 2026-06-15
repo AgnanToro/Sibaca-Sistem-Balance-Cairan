@@ -15,6 +15,7 @@ const outputs = [
   { icon: FlaskConical, title: 'Drain', desc: 'Drainase luka' },
   { icon: Activity, title: 'Muntah/NGT', desc: 'Aspirasi & emesis' },
   { icon: Thermometer, title: 'IWL', desc: 'Insensible water loss' },
+  
 ];
 
 export default function Features() {
