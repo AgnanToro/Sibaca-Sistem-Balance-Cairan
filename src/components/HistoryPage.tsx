@@ -135,7 +135,7 @@ export default function HistoryPage({ onBack }: { onBack: () => void }) {
   const exportHistoryExcel = () => {
     if (history.length === 0) return;
 
-    const rows = history.map((entry) => ({
+    const rows = history.map((entry: HistoryEntry) => ({
       "Waktu simpan": formatHistoryTime(entry.savedAt),
       "Nama pasien": entry.pasien.nama || "-",
       "No. RM": entry.pasien.noRM || "-",

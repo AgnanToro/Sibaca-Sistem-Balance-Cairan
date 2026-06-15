@@ -16,7 +16,7 @@ function Splash() {
       animate={{ opacity: 0 }}
       transition={{ delay: 1.1, duration: 0.5 }}
       onAnimationComplete={(d: any) => { if (d?.opacity === 0) {/* noop */} }}
-      className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-white"
+      className="pointer-events-none fixed inset-0 z-100 flex items-center justify-center bg-white"
     >
       <div className="flex flex-col items-center gap-4">
         <motion.div
@@ -126,7 +126,7 @@ function DashboardMock() {
         </div>
       </div>
 
-      <div className="mt-3 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-500 p-4 text-white">
+      <div className="mt-3 rounded-2xl bg-linear-to-br from-emerald-600 to-emerald-500 p-4 text-white">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] uppercase tracking-wide opacity-80">Balance</p>
@@ -144,7 +144,7 @@ function DashboardMock() {
             initial={{ height: 0 }}
             animate={{ height: `${h}%` }}
             transition={{ duration: 0.8, delay: 0.3 + i * 0.05 }}
-            className="flex-1 rounded-t bg-gradient-to-t from-emerald-200 to-emerald-500"
+            className="flex-1 rounded-t bg-linear-to-t from-emerald-200 to-emerald-500"
           />
         ))}
       </div>
@@ -215,7 +215,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-slate-800 [scroll-behavior:smooth]" style={{ fontFamily: "Onest, system-ui, sans-serif" }}>
+    <div className="min-h-screen bg-white text-slate-800 scroll-smooth" style={{ fontFamily: "Onest, system-ui, sans-serif" }}>
       {!loaded && <Splash />}
 
       {/* NAV */}
@@ -247,7 +247,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
       </header>
 
       {/* HERO */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-white via-emerald-50/60 to-emerald-50">
+      <section className="relative overflow-hidden bg-linear-to-b from-white via-emerald-50/60 to-emerald-50">
         <FloatingIcons />
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 py-20 md:grid-cols-2 md:py-28">
           <motion.div
@@ -430,7 +430,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
               >
                 <motion.div
                   whileHover={{ y: -6 }}
-                  className="z-10 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-200"
+                  className="z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-200"
                 >
                   <s.icon className="h-6 w-6" />
                 </motion.div>
@@ -446,7 +446,7 @@ export default function LandingPage({ onStart }: { onStart: () => void }) {
       </section>
 
       {/* STATISTIK */}
-      <section id="statistik" className="border-y border-emerald-100 bg-gradient-to-br from-emerald-50/80 to-white py-20">
+      <section id="statistik" className="border-y border-emerald-100 bg-linear-to-br from-emerald-50/80 to-white py-20">
         <div className="mx-auto grid max-w-6xl gap-8 px-5 md:grid-cols-4">
           {[
             { label: "Akurasi perhitungan", to: 99, suffix: "%" },

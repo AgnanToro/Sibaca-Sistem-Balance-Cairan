@@ -2,7 +2,6 @@ import { useState } from 'react';
 import LandingPage from './components/LandingPage';
 import CalculatorPage from './components/CalculatorPage';
 import HistoryPage from './components/HistoryPage';
-import { supabase } from './utils/supabase';
 
 
 export default function App() {
