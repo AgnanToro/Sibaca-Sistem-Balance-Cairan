@@ -38,8 +38,8 @@ export default function Kalkulator({ onBack, onNavigateHistory }: { onBack: () =
 
   const kebutuhan = num(pasien.bb) <= 0 ? 0
     : num(pasien.bb) <= 10 ? num(pasien.bb) * 100
-    : num(pasien.bb) <= 20 ? 1000 + (num(pasien.bb) - 10) * 50
-    : 1500 + (num(pasien.bb) - 20) * 20;
+      : num(pasien.bb) <= 20 ? 1000 + (num(pasien.bb) - 10) * 50
+        : 1500 + (num(pasien.bb) - 20) * 20;
 
   const reset = () => {
     setInput(Object.fromEntries(INPUT_FIELDS.map(k => [k, ""])));
@@ -51,7 +51,7 @@ export default function Kalkulator({ onBack, onNavigateHistory }: { onBack: () =
       alert("Supabase belum dikonfigurasi.");
       return;
     }
-    
+
     const record = {
       pasien_nama: pasien.nama,
       pasien_no_rm: pasien.noRM,
@@ -60,20 +60,20 @@ export default function Kalkulator({ onBack, onNavigateHistory }: { onBack: () =
       pasien_suhu: num(pasien.suhu),
       pasien_ruang: pasien.ruang,
       record_date: pasien.tanggal,
-      
+
       input_infus: num(input["Infus"]),
       input_makanan: num(input["Makanan"]),
       input_minuman: num(input["Minuman"]),
       input_obat: num(input["Obat"]),
       input_am: num(input["AM"]),
-      
+
       output_urine: num(output["Urine"]),
       output_bab: num(output["BAB"]),
       output_drain: num(output["Drain"]),
       output_muntah_ngt: num(output["Muntah/NGT"]),
       output_iwl_umum: num(output["IWL Umum"]),
       output_iwl_demam: num(output["IWL Demam"]),
-      
+
       total_input: totalInput,
       total_output: totalOutput,
       total_balance: balance,
@@ -162,57 +162,76 @@ export default function Kalkulator({ onBack, onNavigateHistory }: { onBack: () =
       <div className="mx-auto grid max-w-7xl gap-6 px-5 py-8 lg:grid-cols-3">
         {/* LEFT: forms */}
         <div className="space-y-6 lg:col-span-2">
-            <Section title="Data pasien" icon={User}>
-                <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Nama pasien" value={pasien.nama} onChange={v => setPasien({ ...pasien, nama: v })} placeholder="Tn./Ny. ..." />
-                <Field label="No. rekam medis" value={pasien.noRM} onChange={v => setPasien({ ...pasien, noRM: v })} placeholder="RM-000123" />
-                <Field label="Usia (tahun)" value={pasien.usia} onChange={v => setPasien({ ...pasien, usia: v })} placeholder="45" type="number" />
-                <Field label="Berat badan (kg)" value={pasien.bb} onChange={v => setPasien({ ...pasien, bb: v })} placeholder="60" type="number" />
-                <Field label="Suhu tubuh (°C)" value={pasien.suhu} onChange={v => setPasien({ ...pasien, suhu: v })} placeholder="37" type="number" />
-                <Field label="Ruang / bangsal" value={pasien.ruang} onChange={v => setPasien({ ...pasien, ruang: v })} placeholder="Melati 3" />
-                <Field label="Tanggal" value={pasien.tanggal} onChange={v => setPasien({ ...pasien, tanggal: v })} type="date" />
-                </div>
-            </Section>
+          <Section title="Data pasien" icon={User}>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Nama pasien" value={pasien.nama} onChange={v => setPasien({ ...pasien, nama: v })} placeholder="Tn./Ny. ..." />
+              <Field label="No. rekam medis" value={pasien.noRM} onChange={v => setPasien({ ...pasien, noRM: v })} placeholder="RM-000123" />
+              <Field label="Usia (tahun)" value={pasien.usia} onChange={v => setPasien({ ...pasien, usia: v })} placeholder="45" type="number" />
+              <Field label="Berat badan (kg)" value={pasien.bb} onChange={v => setPasien({ ...pasien, bb: v })} placeholder="60" type="number" />
+              <Field label="Suhu tubuh (°C)" value={pasien.suhu} onChange={v => setPasien({ ...pasien, suhu: v })} placeholder="37" type="number" />
+              <Field label="Ruang / bangsal" value={pasien.ruang} onChange={v => setPasien({ ...pasien, ruang: v })} placeholder="Melati 3" />
+              <Field label="Tanggal" value={pasien.tanggal} onChange={v => setPasien({ ...pasien, tanggal: v })} type="date" />
+            </div>
+          </Section>
 
-            <Section title="Input cairan (mL)" icon={PlusCircle} accent="emerald">
-                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                {INPUT_FIELDS.map(k => (
-                    <Field key={k} label={k} value={input[k]} onChange={v => setInput({ ...input, [k]: v })} placeholder="0" type="number" />
-                ))}
-                </div>
-                <Total label="Total input" value={totalInput} tone="emerald" />
-            </Section>
+          <Section title="Input cairan (mL)" icon={PlusCircle} accent="emerald">
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+              {INPUT_FIELDS.filter(k => k !== "AM").map(k => (
+                <Field
+                  key={k}
+                  label={k}
+                  value={input[k]}
+                  onChange={v => setInput({ ...input, [k]: v })}
+                  placeholder="0"
+                  type="number"
+                />
+              ))}
 
-            <Section title="Output cairan (mL)" icon={MinusCircle} accent="slate">
-                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                {OUTPUT_FIELDS.filter(k => !k.startsWith("IWL")).map(k => (
-                    <Field key={k} label={k} value={output[k]} onChange={v => setOutput({ ...output, [k]: v })} placeholder="0" type="number" />
-                ))}
-                </div>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <FieldWithCalc 
-                    label="IWL Umum" 
-                    value={output["IWL Umum"]} 
-                    onChange={v => setOutput({ ...output, "IWL Umum": v })} 
-                    onCalc={() => setOutput(prev => ({ ...prev, "IWL Umum": (bb * getIwlBase(prev["IWL Umum"])).toFixed(0) }))}
-                  />
-                  <FieldWithCalc 
-                    label="IWL Demam" 
-                    value={output["IWL Demam"]} 
-                    onChange={v => setOutput({ ...output, "IWL Demam": v })} 
-                    onCalc={() => setOutput(prev => {
-                      const iwlUmum = num(prev["IWL Umum"]);
-                      const iwlDemam = suhu > 37 ? iwlUmum * 0.1 * (suhu - 37) : 0;
-                      return { ...prev, "IWL Demam": iwlDemam.toFixed(0) };
-                    })}
-                  />
-                </div>
-                <Total label="Total output" value={totalOutput} tone="slate" />
-            </Section>
+              <FieldWithCalc
+                label="AM"
+                value={input["AM"]}
+                onChange={v => setInput({ ...input, AM: v })}
+                onCalc={() =>
+                  setInput(prev => ({
+                    ...prev,
+                    AM: (bb * 5).toFixed(0)
+                  }))
+                }
+              />
+            </div>
+            <Total label="Total input" value={totalInput} tone="emerald" />
+          </Section>
 
-            <button onClick={reset} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:border-slate-400">
-                <RotateCcw className="h-4 w-4" /> Reset input & output
-            </button>
+          <Section title="Output cairan (mL)" icon={MinusCircle} accent="slate">
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+              {OUTPUT_FIELDS.filter(k => !k.startsWith("IWL")).map(k => (
+                <Field key={k} label={k} value={output[k]} onChange={v => setOutput({ ...output, [k]: v })} placeholder="0" type="number" />
+              ))}
+            </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <FieldWithCalc
+                label="IWL Umum"
+                value={output["IWL Umum"]}
+                onChange={v => setOutput({ ...output, "IWL Umum": v })}
+                onCalc={() => setOutput(prev => ({ ...prev, "IWL Umum": (bb * getIwlBase(prev["IWL Umum"])).toFixed(0) }))}
+              />
+              <FieldWithCalc
+                label="IWL Demam"
+                value={output["IWL Demam"]}
+                onChange={v => setOutput({ ...output, "IWL Demam": v })}
+                onCalc={() => setOutput(prev => {
+                  const iwlUmum = num(prev["IWL Umum"]);
+                  const iwlDemam = suhu > 37 ? iwlUmum * 0.1 * (suhu - 37) : 0;
+                  return { ...prev, "IWL Demam": iwlDemam.toFixed(0) };
+                })}
+              />
+            </div>
+            <Total label="Total output" value={totalOutput} tone="slate" />
+          </Section>
+
+          <button onClick={reset} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:border-slate-400">
+            <RotateCcw className="h-4 w-4" /> Reset input & output
+          </button>
         </div>
 
         {/* RIGHT: sidebar + results */}
@@ -257,11 +276,10 @@ export default function Kalkulator({ onBack, onNavigateHistory }: { onBack: () =
             initial={{ scale: 0.97, opacity: 0.7 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className={`sticky top-20 rounded-3xl border p-6 shadow-xl ${
-              tone === "emerald" ? "border-emerald-200 bg-linear-to-br from-emerald-600 to-emerald-500 text-white shadow-emerald-200" :
-              tone === "rose" ? "border-rose-200 bg-linear-to-br from-rose-600 to-rose-500 text-white shadow-rose-200" :
-              "border-slate-200 bg-linear-to-br from-slate-600 to-slate-500 text-white shadow-slate-200"
-            }`}
+            className={`sticky top-20 rounded-3xl border p-6 shadow-xl ${tone === "emerald" ? "border-emerald-200 bg-linear-to-br from-emerald-600 to-emerald-500 text-white shadow-emerald-200" :
+                tone === "rose" ? "border-rose-200 bg-linear-to-br from-rose-600 to-rose-500 text-white shadow-rose-200" :
+                  "border-slate-200 bg-linear-to-br from-slate-600 to-slate-500 text-white shadow-slate-200"
+              }`}
           >
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest opacity-90">
               <Calculator className="h-4 w-4" /> Hasil balance cairan
@@ -342,23 +360,23 @@ function Field({ label, value, onChange, placeholder, type = "text" }: { label: 
 function FieldWithCalc({ label, value, onChange, onCalc }: { label: string; value: string; onChange: (v: string) => void; onCalc: () => void }) {
   return (
     <label className="block">
-       <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-slate-600">{label}</span>
-          <button 
-            type="button"
-            onClick={onCalc} 
-            className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-medium hover:bg-emerald-200"
-          >
-            Hitung
-          </button>
-       </div>
-       <input
-         type="number"
-         value={value}
-         onChange={e => onChange(e.target.value)}
-         placeholder="0"
-         className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-       />
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-slate-600">{label}</span>
+        <button
+          type="button"
+          onClick={onCalc}
+          className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-medium hover:bg-emerald-200"
+        >
+          Hitung
+        </button>
+      </div>
+      <input
+        type="number"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder="0"
+        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+      />
     </label>
   );
 }
